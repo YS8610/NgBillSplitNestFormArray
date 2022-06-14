@@ -2,6 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
+import { friend } from './friend.model';
+
 
 @Component({
   selector: 'app-root',
@@ -16,6 +18,7 @@ export class AppComponent implements OnInit, OnDestroy  {
   individualBill = 0;
   isSubmitted = false;
   formChange !: Subscription;
+  friendsInfo : friend[] = [];
 
 
   constructor(private fb : FormBuilder, private _snackBar: MatSnackBar){}
@@ -62,7 +65,7 @@ export class AppComponent implements OnInit, OnDestroy  {
   newExtraPaidGrp():FormGroup{
     return this.fb.group({
       place: ["",[Validators.required,Validators.minLength(3)]],
-      PaidAmt :[0,Validators.required],
+      paidAmt :[0,Validators.required],
       comment :[""]
     })
   }
@@ -91,9 +94,9 @@ export class AppComponent implements OnInit, OnDestroy  {
     this.extraPaidGrp(friendindex).push(this.newExtraPaidGrp());
   }
 
-  onDeleteExtraPaidGrp(friendindex:number){
+  onDeleteExtraPaidGrp(friendindex:number,paidindex:number){
     console.log(friendindex)
-    this.extraPaidGrp(friendindex).removeAt(friendindex);
+    this.extraPaidGrp(friendindex).removeAt(paidindex);
   }
 
   submitTrue(){
@@ -101,13 +104,15 @@ export class AppComponent implements OnInit, OnDestroy  {
   }
 
 
-
-
-
   onSubmit(){
     this.totalBill = 0
     this.individualBill = 0
+    this.friendsInfo = []
     console.log(this.billForm.value)
+    this.billForm.value["friends"].forEach( (e: friend) => {
+      this.friendsInfo.push(e)
+    })
+    console.log(this.friendsInfo)
     this.billForm.value["friends"].forEach( (e:{friendName:string,paidAmt:number,comment:string}) => {
       this.totalBill = this.totalBill + e["paidAmt"]
     });
