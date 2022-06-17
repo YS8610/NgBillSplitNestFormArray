@@ -30,7 +30,7 @@
                   <mat-form-field appearance="outline">
                     <mat-label>Place</mat-label>
                     <input matInput id="place" name="place" formControlName="place">
-                    <mat-error *ngIf="friends.controls[i].get('place')?.invalid && friends.controls[i].get('place')?.touched">Please enter name of place</mat-error>
+                    <mat-error *ngIf="extraPaidGrp(i).controls[j].get('place')?.invalid && extraPaidGrp(i).controls[j].get('place')?.touched">Please enter name of place</mat-error>
                   </mat-form-field>
                 </td>
                 <td>
@@ -38,7 +38,7 @@
                     <mat-label>Amount</mat-label>
                     <input matInput type="number" class="example-right-align" placeholder="0" name="paidAmt" formControlName="paidAmt" min="0">
                     <span matPrefix>$&nbsp;</span>
-                    <mat-error *ngIf="friends.controls[i].get('paidAmt')?.invalid && friends.controls[i].get('paidAmt')?.touched">
+                    <mat-error *ngIf="extraPaidGrp(i).controls[j].get('paidAmt')?.invalid && extraPaidGrp(i).controls[j].get('paidAmt')?.touched">
                       Pls enter positive number
                     </mat-error>
                   </mat-form-field>
@@ -50,7 +50,7 @@
                   </mat-form-field>
                 </td>
                 <td>
-                  <button mat-icon-button color="primary" (click)="onAddExtraPaidGrp(i)" [disabled] ="friends.controls[i].get('friendName')?.invalid || j!=extraPaidGrp(i).length-1">
+                  <button mat-icon-button color="primary" (click)="onAddExtraPaidGrp(i)" [disabled] ="friends.controls[i].get('friendName')?.invalid || j!=extraPaidGrp(i).length-1 || extraPaidGrp(i).controls[j].get('place')?.invalid">
                     <mat-icon>add</mat-icon>
                   </button>
                 </td>
@@ -66,140 +66,30 @@
     </mat-card>
   </div>
 </form>
-{{this.billForm.value|json}}
+{{this.friendsInfo|json}} <br>
+total bill = {{totalBill}} <br>
+individualBill = {{individualBill}} <br>
 <mat-divider></mat-divider>
 
-<mat-card class="card">
+<mat-card class="card" style="margin-bottom: 20px;">
+  <h1>Bill</h1>
+  <section *ngFor="let friend of friendsInfo">
+    <span><b>{{friend.friendName}} paid</b></span>
+    <br>
+    <span *ngFor="let paid of friend.extraPaidGrp">
+      <span *ngIf="paid.paidAmt>0">${{paid.paidAmt |number:'1.0-2':'en-US'}} @{{paid.place}} for {{paid.comment}}</span>
+      <br>
+    </span>
+    <br>
+
+  </section>
+  <ng-container *ngIf="totalBill != 0">Total Bill = ${{totalBill |number:'1.0-2':'en-US'}}</ng-container>
+
 </mat-card>
 
 
 
-
-
-
-<!-- <form [formGroup]="billForm" (ngSubmit)="onSubmit()">
-  <mat-form-field appearance="outline">
-    <mat-label>Place</mat-label>
-    <input matInput id="place" name="place" formControlName="place">
-    <mat-error *ngIf="billForm.get('place')?.invalid && billForm.get('place')?.touched">Please enter name of place</mat-error>
-  </mat-form-field>
-
-
-  <table formArrayName="friends">
-    <tr>
-      <th>Name</th>
-      <th>PaidAmount</th>
-      <th>Comment</th>
-    </tr>
-    <ng-container *ngFor="let f of friends.controls; let i = index;">
-      <tr [formGroupName]="i">
-        <td>
-          <mat-form-field appearance="fill">
-            <mat-label>FriendName</mat-label>
-            <input matInput type="text" placeholder="Jon" name="friendname" formControlName="friendName">
-            <mat-error *ngIf="friends.controls[i].get('friendName')?.invalid && friends.controls[i].get('friendName')?.touched">
-              Pls enter name
-            </mat-error>
-          </mat-form-field>
-        </td>
-        <td>
-          <mat-form-field appearance="fill" floatLabel="always">
-            <mat-label>Amount</mat-label>
-            <input matInput type="number" class="example-right-align" placeholder="0" name="paidAmt" formControlName="paidAmt" min="0">
-            <span matPrefix>$&nbsp;</span>
-            <mat-error *ngIf="friends.controls[i].get('paidAmt')?.invalid && friends.controls[i].get('paidAmt')?.touched">
-              Pls enter positive number
-            </mat-error>
-          </mat-form-field>
-        </td>
-        <td>
-          <mat-form-field appearance="fill">
-            <mat-label>Comment</mat-label>
-            <input matInput placeholder="pay for drink" name="comment" formControlName="comment">
-          </mat-form-field>
-        </td>
-        <td>
-          <button mat-icon-button color="primary" (click)="onAddFriend()" [disabled]="friends.controls[i]?.invalid || i+1!=friends.length">
-            <mat-icon>person_add_alt_1</mat-icon>
-          </button>
-        </td>
-        <td>
-          <button mat-icon-button color="primary" (click)="onDeleteFriend(i)" [disabled]="friends.length<2">
-            <mat-icon>person_remove</mat-icon>
-          </button>
-        </td>
-        <td>
-          <button mat-icon-button color="primary" (click)="onAddExtraPaidGrp(i)" [disabled] ="friends.controls[i].get('friendName')?.invalid">
-            <mat-icon>add</mat-icon>
-          </button>
-        </td>
-        <td>
-          <button mat-icon-button color="primary" (click)="onDeleteFriend(i)" [disabled]="friends.length<2">
-            <mat-icon>remove</mat-icon>
-          </button>
-        </td>
-      </tr>
-
-      <tr formArrayName = "extraPaidGrp">
-        <ng-container *ngFor="let extraPaidAmt of extraPaidGrp(i).controls; let j = index">
-          <tr [formGroupName]="j">
-            <td>
-              {{friends.controls[i].get('friendName')?.value}}
-            </td>
-
-            <td>
-              <mat-form-field appearance="fill" floatLabel="always">
-                <mat-label>Amount</mat-label>
-                <input matInput type="number" class="example-right-align" placeholder="0" name="paidAmt" formControlName="paidAmt" min="0">
-                <span matPrefix>$&nbsp;</span>
-                <mat-error *ngIf="extraPaidGrp(i).controls[j].get('paidAmt')?.invalid && extraPaidGrp(i).controls[j].get('paidAmt')?.touched">
-                  Pls enter positive number
-                </mat-error>
-              </mat-form-field>
-            </td>
-            <td>
-              <mat-form-field appearance="fill">
-                <mat-label>Comment</mat-label>
-                <input matInput placeholder="pay for drink" name="comment" formControlName="comment">
-              </mat-form-field>
-            </td>
-          </tr>
-
-        </ng-container>
-      </tr>
-    </ng-container>
-  </table>
-
-  <table formArrayName="friends">
-    <tr>
-      <th>Name</th>
-      <th>PaidAmount</th>
-      <th>Comment</th>
-    </tr>
-    <ng-container *ngFor="let f of friends.controls; let i = index;">
-      <tr [formGroupName]="i">
-        <td>{{friends.controls[i].get('friendName')?.value}}</td>
-        <ng-container *ngFor="let extraPaidAmt of extraPaidGrp(i).controls; let j = index">
-            <td [formGroupName]="j">
-              <mat-form-field appearance="fill" floatLabel="always">
-                <mat-label>Amount</mat-label>
-                <input matInput type="number" class="example-right-align" placeholder="0" name="paidAmt" formControlName="paidAmt" min="0">
-                <span matPrefix>$&nbsp;</span>
-                <mat-error *ngIf="extraPaidGrp(i).controls[j].get('paidAmt')?.invalid && extraPaidGrp(i).controls[j].get('paidAmt')?.touched">
-                  Pls enter positive number
-                </mat-error>
-              </mat-form-field>
-            </td>
-        </ng-container>
-      </tr>
-    </ng-container>
-  </table>
-
-  <button mat-stroked-button color="primary" type="submit" [disabled]="billForm.invalid" (click) = "submitTrue()">
-    <mat-icon>calculate</mat-icon>Calculate
-  </button>
-</form>
-<mat-divider></mat-divider>
+<!-- <mat-divider></mat-divider>
 <mat-card class="card">
   <h1> Bill <span *ngIf='this.billForm.value["place"]!=""'>for {{this.billForm.value["place"]}}</span></h1>
   <p>

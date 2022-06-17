@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
-import { friend } from './friend.model';
+import { paidGrp, friend, friendDisplayInfo } from './friend.model';
 
 
 @Component({
@@ -19,6 +19,7 @@ export class AppComponent implements OnInit, OnDestroy  {
   isSubmitted = false;
   formChange !: Subscription;
   friendsInfo : friend[] = [];
+  friendsDisplay : friendDisplayInfo[] = []
 
 
   constructor(private fb : FormBuilder, private _snackBar: MatSnackBar){}
@@ -108,49 +109,36 @@ export class AppComponent implements OnInit, OnDestroy  {
     this.totalBill = 0
     this.individualBill = 0
     this.friendsInfo = []
-    console.log(this.billForm.value)
+    this.friendsDisplay = []
     this.billForm.value["friends"].forEach( (e: friend) => {
       this.friendsInfo.push(e)
     })
-    console.log(this.friendsInfo)
-    this.billForm.value["friends"].forEach( (e:{friendName:string,paidAmt:number,comment:string}) => {
-      this.totalBill = this.totalBill + e["paidAmt"]
+    this.friendsInfo.forEach( (f : friend) =>{
+      f.extraPaidGrp.forEach( (p : paidGrp) => {
+        this.totalBill = this.totalBill + p.paidAmt
+      })
     });
-    this.individualBill = this.totalBill / this.billForm.value["friends"].length
+    this.individualBill = this.totalBill /  this.friendsInfo.length
+    this.friendCost(this.friendsInfo,this.friendsDisplay  )
   }
 
   onCopy(){
     this.onSubmit()
-    let header = "Bill for " + this.billForm.value["place"]
+    let header = "Bill"
+    let friendPayment = ""
     let paymentPart1 = ""
     let paymentPart2 = "Bill = "
     let paymentPart3 = "= $" + this.numberWithCommas(this.totalBill)
     let paymentPart4 = ""
     let website = "Generated from https://ys8610.github.io/ngBillSplit/"
-    this.billForm.value["friends"].forEach( (e:{friendName:string,paidAmt:number,comment:string}) =>{
+    this.friendsInfo.forEach( (f : friend) =>{
+      f.extraPaidGrp.forEach( (p : paidGrp) => {
+        friendPayment = friendPayment + "$" +  p.paidAmt + " @" + p.place + " (" + p.comment + ")\n"
+      })
+      paymentPart1 = paymentPart1 + f.friendName + " paid \n" + friendPayment
+      friendPayment = ""
+      console.log(paymentPart1)
 
-      if (e["paidAmt"] > 0 || e["paidAmt"] < 0){
-        if(e["comment"]!=''){
-          paymentPart1 = paymentPart1 + e["friendName"] +" paid $" + this.numberWithCommas(e["paidAmt"]) + " (" + e["comment"] + ")" +"\n"
-        }
-        else{
-          paymentPart1 = paymentPart1 + e["friendName"] +" paid $" + this.numberWithCommas(e["paidAmt"]) +"\n"
-        }
-        paymentPart2 = paymentPart2 + "$" + this.numberWithCommas(e["paidAmt"]) + " +"
-
-        paymentPart4 = paymentPart4
-                      + e["friendName"]
-                      + " bill = $" + this.numberWithCommas( this.roundNumber(this.individualBill) )
-                      + " - $" + this.numberWithCommas( this.roundNumber(e["paidAmt"]) )
-                      + " = $" + this.numberWithCommas( this.roundNumber(this.individualBill - e["paidAmt"]) )
-                      + "\n"
-      }
-      else {
-        paymentPart4 = paymentPart4
-        + e["friendName"]
-        + " bill = $" + this.numberWithCommas(this.roundNumber(this.individualBill))
-        + "\n"
-      }
     })
 
     const copyString = header + "\n\n"
@@ -178,5 +166,26 @@ export class AppComponent implements OnInit, OnDestroy  {
 
   private numberWithCommas(num : number) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  private friendCost ( b : friend[] , c:friendDisplayInfo[] ){
+    b.forEach( (f : friend)=>{
+      let tempF = <friendDisplayInfo>{}
+      tempF.totalpaid = 0
+      tempF.paidStr = ""
+      tempF.numStr = ""
+      tempF.friendName = f.friendName
+      console.log(f.friendName)
+      f.extraPaidGrp.forEach( (p : paidGrp)=>{
+        tempF.totalpaid = tempF.totalpaid+ p.paidAmt
+      })
+      if ( tempF.totalpaid>0){
+        f.extraPaidGrp.forEach( (p : paidGrp)=>{
+          tempF.paidStr =  tempF.paidStr + "$" + this.numberWithCommas(p.paidAmt) + " @" + p.place + " for " + p.comment + "\n"
+          tempF.numStr = tempF.numStr + "+" + p.paidAmt
+        })
+      }
+      c.push(tempF)
+    })
   }
 }
