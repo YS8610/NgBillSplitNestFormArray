@@ -66,25 +66,45 @@
     </mat-card>
   </div>
 </form>
-{{this.friendsInfo|json}} <br>
+<!-- {{this.friendsInfo|json}} <br>
 total bill = {{totalBill}} <br>
-individualBill = {{individualBill}} <br>
+individualBill = {{individualBill}} <br> -->
 <mat-divider></mat-divider>
 
 <mat-card class="card" style="margin-bottom: 20px;">
   <h1>Bill</h1>
-  <section *ngFor="let friend of friendsInfo">
-    <span><b>{{friend.friendName}} paid</b></span>
-    <br>
-    <span *ngFor="let paid of friend.extraPaidGrp">
-      <span *ngIf="paid.paidAmt>0">${{paid.paidAmt |number:'1.0-2':'en-US'}} @{{paid.place}} for {{paid.comment}}</span>
+  <!-- Breakdown of bill -->
+
+  <section *ngFor="let friend of friendsInfo; let i =index">
+    <ng-container *ngIf="friendsDisplay[i].totalpaid>0">
+      <span><b>{{friend.friendName}} paid</b></span>
       <br>
-    </span>
-    <br>
-
+      <span *ngFor="let paid of friend.extraPaidGrp">
+        <span *ngIf="paid.paidAmt>0">${{paid.paidAmt |number:'1.0-2':'en-US'}} @{{paid.place}} for {{paid.comment}}</span>
+        <br>
+      </span>
+      <br>
+    </ng-container>
   </section>
+  <!-- total bill -->
   <ng-container *ngIf="totalBill != 0">Total Bill = ${{totalBill |number:'1.0-2':'en-US'}}</ng-container>
+  <br><br>
+  <!-- Individual bill -->
+  <section *ngFor="let friend of friendsInfo; let j = index">
+    <span>
+      <b>{{friend.friendName}} bill</b> =
+      <span *ngFor="let paid of friend.extraPaidGrp; let i = index ">
+        <span *ngIf="paid.paidAmt>0">
+          <span *ngIf="i!=0">+</span>
+          ${{paid.paidAmt |number:'1.0-2':'en-US'}}
+        </span>
+      </span>
+      <span *ngIf="individualBill>0">
+        - ${{individualBill|number:'1.0-2':'en-US'}} = ${{friendsDisplay[j].totalpaid - individualBill |number:'1.0-2':'en-US' }}
+      </span>
 
+    </span>
+  </section>
 </mat-card>
 
 
