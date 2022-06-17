@@ -154,7 +154,7 @@ export class AppComponent implements OnInit, OnDestroy  {
       }
     }
     let totalPayment = "Total Bill = $" + this.numberWithCommas(this.totalBill)
-    let website = "Generated from https://ys8610.github.io/ngBillSplit/"
+    let website = "Generated from https://ys8610.github.io/NgBillSplitNestFormArray/"
 
     const copyString = header + "\n\n"
                       + friendPayment
