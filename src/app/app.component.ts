@@ -126,26 +126,40 @@ export class AppComponent implements OnInit, OnDestroy  {
     this.onSubmit()
     let header = "Bill"
     let friendPayment = ""
-    let paymentPart1 = ""
-    let paymentPart2 = "Bill = "
-    let paymentPart3 = "= $" + this.numberWithCommas(this.totalBill)
-    let paymentPart4 = ""
+    let individualPay = ""
+    for (let friend of this.friendsDisplay){
+      if (friend.totalpaid>0){
+        friendPayment = friendPayment
+                        + friend.friendName
+                        + " paid\n"
+                        +  friend.paidStr
+                        + "\n\n"
+        individualPay = individualPay
+                        + friend.friendName
+                        + " Bill ="
+                        + friend.numStr.substring(1)
+                        + "- $"
+                        + this.numberWithCommas( this.roundNumber(this.individualBill) )
+                        + " = $"
+                        + this.numberWithCommas( this.roundNumber(friend.totalpaid-this.individualBill) )
+                        + "\n"
+      }
+      else{
+        individualPay = individualPay
+                        + friend.friendName
+                        + " Bill ="
+                        + "- $"
+                        + this.numberWithCommas( this.roundNumber(this.individualBill) )
+                        + "\n"
+      }
+    }
+    let totalPayment = "Total Bill = $" + this.numberWithCommas(this.totalBill)
     let website = "Generated from https://ys8610.github.io/ngBillSplit/"
-    this.friendsInfo.forEach( (f : friend) =>{
-      f.extraPaidGrp.forEach( (p : paidGrp) => {
-        friendPayment = friendPayment + "$" +  p.paidAmt + " @" + p.place + " (" + p.comment + ")\n"
-      })
-      paymentPart1 = paymentPart1 + f.friendName + " paid \n" + friendPayment
-      friendPayment = ""
-      console.log(paymentPart1)
-
-    })
 
     const copyString = header + "\n\n"
-                      + paymentPart1
-                      + "\n" + paymentPart2.substring(0,paymentPart2.length-1)
-                      + "\n" + paymentPart3 + "\n"
-                      + "\n" + paymentPart4
+                      + friendPayment
+                      + totalPayment + "\n\n"
+                      + individualPay
                       + "\n" + website
 
     navigator.clipboard.writeText(copyString)
@@ -181,8 +195,10 @@ export class AppComponent implements OnInit, OnDestroy  {
       })
       if ( tempF.totalpaid>0){
         f.extraPaidGrp.forEach( (p : paidGrp)=>{
-          tempF.paidStr =  tempF.paidStr + "$" + this.numberWithCommas(p.paidAmt) + " @" + p.place + " for " + p.comment + "\n"
-          tempF.numStr = tempF.numStr + "+" + p.paidAmt
+          if (p.paidAmt>0){
+            tempF.paidStr =  tempF.paidStr + "$" + this.numberWithCommas(p.paidAmt) + " @" + p.place + " for " + p.comment + "\n"
+            tempF.numStr = tempF.numStr + "+ $" + p.paidAmt + " "
+          }
         })
       }
       c.push(tempF)

@@ -80,8 +80,10 @@ individualBill = {{individualBill}} <br> -->
       <span><b>{{friend.friendName}} paid</b></span>
       <br>
       <span *ngFor="let paid of friend.extraPaidGrp">
-        <span *ngIf="paid.paidAmt>0">${{paid.paidAmt |number:'1.0-2':'en-US'}} @{{paid.place}} for {{paid.comment}}</span>
-        <br>
+        <ng-container *ngIf="paid.paidAmt>0">
+          <span >${{paid.paidAmt |number:'1.0-2':'en-US'}} @{{paid.place}} for {{paid.comment}}</span>
+          <br>
+        </ng-container>
       </span>
       <br>
     </ng-container>
@@ -102,9 +104,13 @@ individualBill = {{individualBill}} <br> -->
       <span *ngIf="individualBill>0">
         - ${{individualBill|number:'1.0-2':'en-US'}} = ${{friendsDisplay[j].totalpaid - individualBill |number:'1.0-2':'en-US' }}
       </span>
-
     </span>
   </section>
+  <div fxLayoutAlign="end center">
+    <button mat-icon-button color="primary" (click) = "onCopy()">
+      <mat-icon>content_copy</mat-icon>
+    </button>
+  </div>
 </mat-card>
 
 
