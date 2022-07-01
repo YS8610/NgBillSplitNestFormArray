@@ -21,4 +21,7 @@ export class LocalstorageService {
     return [];
   }
 
+  is_Exist():boolean{
+    return localStorage.getItem('BillSplitterNested') != null?true:false;
+  }
 }

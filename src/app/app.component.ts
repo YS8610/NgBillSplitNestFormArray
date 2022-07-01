@@ -22,7 +22,7 @@ export class AppComponent implements OnInit, OnDestroy  {
   formChange !: Subscription;
   friendsInfo : Friend[] = [];
   friendsDisplay : FriendDisplayInfo[] = []
-  storedData !: Friend[];
+  storedData !: Friend[] | string;
 
 
   constructor(
@@ -33,24 +33,8 @@ export class AppComponent implements OnInit, OnDestroy  {
 
 
   ngOnInit(): void {
-    this.storedData = this.localStorageDb.getData()
-    if (this.storedData==[]){
-      this.billForm = this.fb.group({
-        friends : this.fb.array([
-          this.fb.group({
-            friendName : ["",Validators.required],
-            extraPaidGrp : this.fb.array([
-              this.fb.group({
-                place: ["",[Validators.required,Validators.minLength(3)]],
-                paidAmt : [0,[Validators.min(0),Validators.required],],
-                comment : ""
-              })
-            ])
-          })
-        ])
-      })
-    }
-    else{
+    if (this.localStorageDb.is_Exist() ){
+      this.storedData = this.localStorageDb.getData()
       this.billForm = this.fb.group({});
       let friendGrp = this.fb.array([]);
       this.storedData.forEach((friend) => {
@@ -70,6 +54,22 @@ export class AppComponent implements OnInit, OnDestroy  {
       })
       this.billForm = this.fb.group({
         friends : friendGrp
+      })
+    }
+    else{
+      this.billForm = this.fb.group({
+        friends : this.fb.array([
+          this.fb.group({
+            friendName : ["",Validators.required],
+            extraPaidGrp : this.fb.array([
+              this.fb.group({
+                place: ["",[Validators.required,Validators.minLength(3)]],
+                paidAmt : [0,[Validators.min(0),Validators.required],],
+                comment : ""
+              })
+            ])
+          })
+        ])
       })
     }
     this.onChange();
