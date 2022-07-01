@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
+// import { DexieDbService } from './dexie-db.service'
 import { Subscription } from 'rxjs';
-import { paidGrp, friend, friendDisplayInfo } from './friend.model';
+import { PaidGrp, Friend, FriendDisplayInfo } from './friend.model';
+import { LocalstorageService } from './localstorage.service';
 
 
 @Component({
@@ -18,29 +20,60 @@ export class AppComponent implements OnInit, OnDestroy  {
   individualBill = 0;
   isSubmitted = false;
   formChange !: Subscription;
-  friendsInfo : friend[] = [];
-  friendsDisplay : friendDisplayInfo[] = []
+  friendsInfo : Friend[] = [];
+  friendsDisplay : FriendDisplayInfo[] = []
+  storedData !: Friend[];
 
 
-  constructor(private fb : FormBuilder, private _snackBar: MatSnackBar){}
+  constructor(
+    private fb : FormBuilder,
+    private _snackBar: MatSnackBar,
+    private localStorageDb : LocalstorageService
+    ){}
 
 
   ngOnInit(): void {
-    this.billForm = this.fb.group({
-      friends : this.fb.array([
-        this.fb.group({
-          friendName : ["",Validators.required],
-          extraPaidGrp : this.fb.array([
-            this.fb.group({
-              place: ["",[Validators.required,Validators.minLength(3)]],
-              paidAmt : [0,[Validators.min(0),Validators.required],],
-              comment : ""
+    this.storedData = this.localStorageDb.getData()
+    if (this.storedData==[]){
+      this.billForm = this.fb.group({
+        friends : this.fb.array([
+          this.fb.group({
+            friendName : ["",Validators.required],
+            extraPaidGrp : this.fb.array([
+              this.fb.group({
+                place: ["",[Validators.required,Validators.minLength(3)]],
+                paidAmt : [0,[Validators.min(0),Validators.required],],
+                comment : ""
+              })
+            ])
+          })
+        ])
+      })
+    }
+    else{
+      this.billForm = this.fb.group({});
+      let friendGrp = this.fb.array([]);
+      this.storedData.forEach((friend) => {
+        let paymentGrp = this.fb.array([]);
+        friend.extraPaidGrp.forEach( p =>{
+          paymentGrp.push( this.fb.group({
+            place: [p.place,[Validators.required,Validators.minLength(3)]],
+            paidAmt : [p.paidAmt,[Validators.min(0),Validators.required],],
+            comment : p.comment
             })
-          ])
+          )
         })
-      ])
-    })
+        friendGrp.push( this.fb.group({
+          friendName : [friend.friendName,Validators.required],
+          extraPaidGrp : paymentGrp
+        }) )
+      })
+      this.billForm = this.fb.group({
+        friends : friendGrp
+      })
+    }
     this.onChange();
+    this.onCopy();
   }
 
 
@@ -110,16 +143,17 @@ export class AppComponent implements OnInit, OnDestroy  {
     this.individualBill = 0
     this.friendsInfo = []
     this.friendsDisplay = []
-    this.billForm.value["friends"].forEach( (e: friend) => {
-      this.friendsInfo.push(e)
+    this.billForm.value["friends"].forEach( (e: Friend) => {
+      this.friendsInfo.push(e);
     })
-    this.friendsInfo.forEach( (f : friend) =>{
-      f.extraPaidGrp.forEach( (p : paidGrp) => {
-        this.totalBill = this.totalBill + p.paidAmt
+    this.friendsInfo.forEach( (f : Friend) =>{
+      f.extraPaidGrp.forEach( (p : PaidGrp) => {
+        this.totalBill = this.totalBill + p.paidAmt;
       })
     });
-    this.individualBill = this.totalBill /  this.friendsInfo.length
-    this.friendCost(this.friendsInfo,this.friendsDisplay  )
+    this.individualBill = this.totalBill /  this.friendsInfo.length;
+    this.friendCost(this.friendsInfo,this.friendsDisplay  );
+    this.localStorageDb.saveData(this.friendsInfo);
   }
 
   onCopy(){
@@ -173,6 +207,17 @@ export class AppComponent implements OnInit, OnDestroy  {
       this._snackBar.open("copied to clipboard", "close" ,{duration: 4000} );
   }
 
+  onReset(){
+    this.billForm = this.emptyForm();
+    this.localStorageDb.saveData([]);
+    this.totalBill = 0
+    this.individualBill = 0
+    this.friendsInfo = []
+    this.friendsDisplay = []
+    this.onCopy();
+    window.location.reload();
+  }
+
 
   private roundNumber(num: number){
     return Math.round((num + Number.EPSILON) * 100) / 100
@@ -182,19 +227,19 @@ export class AppComponent implements OnInit, OnDestroy  {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
-  private friendCost ( b : friend[] , c:friendDisplayInfo[] ){
-    b.forEach( (f : friend)=>{
-      let tempF = <friendDisplayInfo>{}
+  private friendCost ( b : Friend[] , c:FriendDisplayInfo[] ){
+    b.forEach( (f : Friend)=>{
+      let tempF = <FriendDisplayInfo>{}
       tempF.totalpaid = 0
       tempF.paidStr = ""
       tempF.numStr = ""
       tempF.friendName = f.friendName
       console.log(f.friendName)
-      f.extraPaidGrp.forEach( (p : paidGrp)=>{
+      f.extraPaidGrp.forEach( (p : PaidGrp)=>{
         tempF.totalpaid = tempF.totalpaid+ p.paidAmt
       })
       if ( tempF.totalpaid>0){
-        f.extraPaidGrp.forEach( (p : paidGrp)=>{
+        f.extraPaidGrp.forEach( (p : PaidGrp)=>{
           if (p.paidAmt>0){
             tempF.paidStr =  tempF.paidStr + "$" + this.numberWithCommas(p.paidAmt) + " @" + p.place + " for " + p.comment + "\n"
             tempF.numStr = tempF.numStr + "+ $" + p.paidAmt + " "
@@ -204,4 +249,23 @@ export class AppComponent implements OnInit, OnDestroy  {
       c.push(tempF)
     })
   }
+
+  private emptyForm(){
+    this.billForm = this.fb.group({
+      friends : this.fb.array([
+        this.fb.group({
+          friendName : ["",Validators.required],
+          extraPaidGrp : this.fb.array([
+            this.fb.group({
+              place: ["",[Validators.required,Validators.minLength(3)]],
+              paidAmt : [0,[Validators.min(0),Validators.required],],
+              comment : ""
+            })
+          ])
+        })
+      ])
+    })
+    return this.billForm;
+  }
+
 }

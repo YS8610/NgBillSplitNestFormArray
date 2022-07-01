@@ -1,15 +1,15 @@
-export interface friend{
+export interface Friend{
   friendName: string;
-  extraPaidGrp : paidGrp[]
+  extraPaidGrp : PaidGrp[]
 }
 
-export interface paidGrp{
+export interface PaidGrp{
   place:string;
   paidAmt:number;
   comment:string;
 }
 
-export interface friendDisplayInfo{
+export interface FriendDisplayInfo{
   friendName:string;
   totalpaid : number;
   paidStr:string;

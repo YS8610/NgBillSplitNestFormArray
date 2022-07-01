@@ -62,8 +62,13 @@
               </tr>
             </ng-container>
           </table>
-      </div>
-    </mat-card>
+        </div>
+        <ng-container *ngIf="friends.controls.length -1 == i">
+          <button mat-icon-button color="primary" (click)="onReset()" [disabled]="storedData==[]">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-container>
+      </mat-card>
   </div>
 </form>
 <!-- {{this.friendsInfo|json}} <br>
