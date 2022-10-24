@@ -55,7 +55,7 @@
                   </button>
                 </td>
                 <td>
-                  <button mat-icon-button color="primary" (click)="onDeleteExtraPaidGrp(i,j)" [disabled]="j<1">
+                  <button mat-icon-button color="primary" (click)="onDeleteExtraPaidGrp(i,j)" [disabled]="extraPaidGrp(i).length<=1"> <!-- j<1|| -->
                     <mat-icon>remove</mat-icon>
                   </button>
                 </td>
