@@ -242,7 +242,7 @@ export class AppComponent implements OnInit, OnDestroy  {
         f.extraPaidGrp.forEach( (p : PaidGrp)=>{
           if (p.paidAmt>0){
             tempF.paidStr =  tempF.paidStr + "$" + this.numberWithCommas(p.paidAmt) + " @" + p.place + " for " + p.comment + "\n"
-            tempF.numStr = tempF.numStr + "+ $" + p.paidAmt + " "
+            tempF.numStr = tempF.numStr + "+ $" + this.numberWithCommas(p.paidAmt) + " "
           }
         })
       }
