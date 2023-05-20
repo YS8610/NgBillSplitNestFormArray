@@ -187,7 +187,7 @@ export class AppComponent implements OnInit, OnDestroy  {
                         + "\n"
       }
     }
-    let totalPayment = "Total Bill = $" + this.numberWithCommas(this.totalBill)
+    let totalPayment = "Total Bill = $" + this.numberWithCommas( this.roundNumber(this.totalBill) )
     let website = "Generated from https://ys8610.github.io/NgBillSplitNestFormArray/"
 
     const copyString = header + "\n\n"
@@ -220,7 +220,9 @@ export class AppComponent implements OnInit, OnDestroy  {
 
 
   private roundNumber(num: number){
-    return Math.round((num + Number.EPSILON) * 100) / 100
+    // return Math.round((num + Number.EPSILON) * 100) / 100
+    var m = Number((Math.abs(num) * 100).toPrecision(15));
+    return Math.round(m) / 100 * Math.sign(num);
   }
 
   private numberWithCommas(num : number) {
